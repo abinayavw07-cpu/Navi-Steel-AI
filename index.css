@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@media print {
+  header button, 
+  header select, 
+  form button, 
+  button {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
