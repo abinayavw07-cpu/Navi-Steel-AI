@@ -42,7 +42,24 @@ const userSchema = new mongoose.Schema({
 
 const UserModel = mongoose.model("User", userSchema);
 
-// ─── Authentication Route (Added) ────────────────────────────────────────────
+// ─── Root Route (Added to fix "Cannot GET /" error) ───────────────────────────
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "⚓ Welcome to NAVI-STEEL AI Backend API Service",
+    status: "Operational",
+    endpoints: {
+      health: "/health",
+      login: "/api/login",
+      forecast: "/api/forecast",
+      fleet: "/api/fleet",
+      optimizeCharter: "/api/optimize-charter",
+      draftCheck: "/api/sailor-tools/draft-check"
+    }
+  });
+});
+
+// ─── Authentication Route ────────────────────────────────────────────────────
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -51,7 +68,6 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ success: false, error: "Email and password are required." });
     }
 
-    // Default Demo Account Check or MongoDB Check
     if (email === "manager@navisteel.ai" && password === "admin123") {
       return res.json({
         success: true,
@@ -61,7 +77,6 @@ app.post("/api/login", async (req, res) => {
       });
     }
 
-    // Checking in MongoDB Database if registered
     try {
       const user = await UserModel.findOne({ email });
       if (!user || user.password !== password) {
@@ -170,7 +185,6 @@ function buildFreightSeries(baseRate, volatility, historicalCount = 22) {
 }
 
 // ─── 4. GPS Location Routes ───────────────────────────────────────────────────
-
 app.post("/api/locations", async (req, res) => {
   try {
     const { name, latitude, longitude, radiusMeters } = req.body;
@@ -345,7 +359,7 @@ app.post("/api/sailor-tools/draft-check", (req, res) => {
   }
 });
 
-// ─── 8. Health Check ────────────────────────────────2──────────────────────────
+// ─── 8. Health Check ──────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
