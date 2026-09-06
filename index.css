@@ -1,15 +1,62 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
+
+/* Danger & Storm Hazard Blinking Pulse Animations */
+@keyframes pulse-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.blink-danger-alert {
+  background: rgba(239, 68, 68, 0.95);
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-red 1.5s infinite;
+  border: 2px solid #ffffff;
+}
+
+.blink-warning-alert {
+  background: rgba(245, 158, 11, 0.95);
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-red 2s infinite;
+  border: 2px solid #ffffff;
+}
+
+/* Print View Styles */
 @media print {
   header button, 
   header select, 
   form button, 
-  button {
+  button,
+  .leaflet-control-zoom,
+  .leaflet-control-layers {
     display: none !important;
   }
   
   body {
     background: white !important;
     color: black !important;
+  }
+
+  .leaflet-container {
+    height: 100vh !important;
+    width: 100% !important;
   }
 }

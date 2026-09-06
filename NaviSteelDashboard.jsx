@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Anchor, UserCheck, LogOut, FileDown, Globe, WifiOff, 
-  TrendingUp, Fuel, BrainCircuit, PlusCircle, Sparkles, 
-  ChevronRight, AlertTriangle, CloudSun, BadgeIndianRupee, Leaf, 
-  Ship, MapPin, CalendarDays, Gauge, RefreshCw, CheckCircle2, Navigation, Compass 
+import {
+  Anchor, UserCheck, LogOut, FileDown, Globe, WifiOff,
+  TrendingUp, Fuel, BrainCircuit, PlusCircle, Sparkles,
+  ChevronRight, AlertTriangle, CloudSun, BadgeIndianRupee, Leaf,
+  Ship, MapPin, CalendarDays, Gauge, RefreshCw, CheckCircle2, Navigation, Compass
 } from 'lucide-react';
 import BunkerOptimizer from './BunkerOptimizer';
+import MaritimePaymentsGateway from './MaritimePaymentsGateway';
+import DocumentsVault from './DocumentsVault';
 import { 
   ResponsiveContainer, AreaChart, Area, CartesianGrid, 
   XAxis, YAxis, Tooltip, ReferenceLine 
 } from 'recharts';
-
 
 export default function NaviSteelDashboard() {
   const [tonnage, setTonnage] = useState(50000);
@@ -88,7 +89,7 @@ export default function NaviSteelDashboard() {
     { day: "Day 1", actual: 23.0, forecast: null },
     { day: "Day 2", actual: 23.5, forecast: null },
     { day: "Day 3", actual: 24.0, forecast: 24.1 },
-    { day: "Day 4", actual: null, forecast: 24.5 },
+    { day: "Day 4", actual: null, forecast: 25.0 },
     { day: "Day 5", actual: null, forecast: 25.0 }
   ];
 
@@ -205,11 +206,9 @@ export default function NaviSteelDashboard() {
 
   const todayLabel = chartData.find((d) => d.forecast !== null)?.day ?? null;
 
-  // Get Coordinates for Origin and Destination
   const originObj = customLocations.find((l) => l.name === originPort) || customLocations[1];
   const destObj = customLocations.find((l) => l.name === destinationPort) || customLocations[0];
 
-  // Midpoint calculation for map center view
   const centerLat = (originObj.lat + destObj.lat) / 2;
   const centerLng = (originObj.lng + destObj.lng) / 2;
 
@@ -416,12 +415,9 @@ export default function NaviSteelDashboard() {
                       actual: d.actual !== null ? Number(convertRate(d.actual)) : null,
                       forecast: d.forecast !== null ? Number(convertRate(d.forecast)) : null,
                     }))}
-                    
                     margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                    
                   >
                     <defs>
-                      
                       <linearGradient id="actSky" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#0284c7" stopOpacity={0} />
@@ -439,9 +435,7 @@ export default function NaviSteelDashboard() {
                     <Area type="monotone" dataKey="actual" stroke="#0284c7" strokeWidth={2.5} fillOpacity={1} fill="url(#actSky)" />
                     <Area type="monotone" dataKey="forecast" stroke="#6366f1" strokeWidth={2.5} strokeDasharray="4 4" fillOpacity={1} fill="url(#foreSky)" />
                   </AreaChart>
-                  
                 </ResponsiveContainer>
-                
               )}
             </div>
 
@@ -474,6 +468,7 @@ export default function NaviSteelDashboard() {
               </p>
             </div>
           </div>
+
           <form 
             onSubmit={handleOptimize}
             className="bg-white/80 border border-sky-200/80 rounded-2xl p-6 shadow-sm backdrop-blur-md flex flex-col justify-between space-y-5"
@@ -657,29 +652,29 @@ export default function NaviSteelDashboard() {
             </span>
           </div>
           
-          {/* Live MarineTraffic Map Embed Centered on Route Coordinates with Proper Zoom */}
           <div className="h-[380px] w-full rounded-xl overflow-hidden border border-sky-200 shadow-inner relative z-0">
             <iframe
               title="Live Marine Traffic Map"
               width="100%"
               height="100%"
-              style={{ border: 0 }}
-              loading="lazy"
-              src={`https://www.marinetraffic.com/en/ais/embed/zoom:7/centery:${centerLat.toFixed(4)}/centerx:${centerLng.toFixed(4)}/maptype:1/shownames:true`}
+              src={`https://www.marinetraffic.com/en/ais/embed/zoom:6/centery:${centerLat}/centerx:${centerLng}`}
+              className="border-0 w-full h-full"
             />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 text-xs font-mono">
-            <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-xl flex items-center justify-between">
-              <span className="text-sky-900"><strong>Origin (From):</strong> {originPort}</span>
-              <span className="text-slate-500">Lat: {originObj.lat.toFixed(2)}, Lng: {originObj.lng.toFixed(2)}</span>
-            </div>
-            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-              <span className="text-emerald-900"><strong>Destination (Reach):</strong> {destinationPort}</span>
-              <span className="text-slate-500">Lat: {destObj.lat.toFixed(2)}, Lng: {destObj.lng.toFixed(2)}</span>
-            </div>
-          </div>
         </div>
+
+        {/* Bunker Fuel Optimizer Module */}
+        <BunkerOptimizer originPort={originPort} destinationPort={destinationPort} />
+
+        {/* ── Maritime Digital Payments & Fuel Escrow Gateway ─────────────── */}
+        <MaritimePaymentsGateway
+          currency={currency}
+          curSymbol={curSymbol}
+          convertRate={convertRate}
+        />
+
+        {/* ── Digital Maritime Documents Vault & Certificate Tracker ──────── */}
+        <DocumentsVault />
       </main>
     </div>
   );

@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    host: true,
     port: 3000,
     proxy: {
       // Forward /api/* calls to Express so the React dev server avoids CORS issues

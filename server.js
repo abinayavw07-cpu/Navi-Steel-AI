@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -366,4 +369,69 @@ app.get("/health", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`⚓ NAVI-STEEL AI Server running on http://localhost:${PORT}`);
+});
+
+// ─── 8. Razorpay Payment Gateway ──────────────────────────────────────────────
+// Lazily initialise so the server still starts if keys are absent (dev mode)
+function getRazorpay() {
+  const key_id     = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!key_id || !key_secret) return null;
+  return new Razorpay({ key_id, key_secret });
+}
+
+// POST /api/payment/create-order
+// Body: { amountInr: number, description: string, receiptId: string }
+app.post('/api/payment/create-order', async (req, res) => {
+  try {
+    const rzp = getRazorpay();
+    if (!rzp) {
+      return res.status(503).json({
+        success: false,
+        error: 'Payment gateway not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env'
+      });
+    }
+
+    const { amountInr, description = 'Maritime Fuel Payment', receiptId } = req.body;
+    if (!amountInr || isNaN(amountInr) || amountInr <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid amount.' });
+    }
+
+    const order = await rzp.orders.create({
+      amount:   Math.round(amountInr * 100),   // Razorpay uses paise
+      currency: 'INR',
+      receipt:  receiptId || `NAVI-${Date.now()}`,
+      notes:    { description, platform: 'NAVI-STEEL AI' },
+    });
+
+    res.json({ success: true, order });
+  } catch (err) {
+    console.error('Razorpay create-order error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/payment/verify
+// Body: { razorpay_order_id, razorpay_payment_id, razorpay_signature }
+app.post('/api/payment/verify', (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) return res.status(503).json({ success: false, error: 'Gateway not configured.' });
+
+    const body      = razorpay_order_id + '|' + razorpay_payment_id;
+    const expected  = crypto.createHmac('sha256', secret).update(body).digest('hex');
+    const isValid   = expected === razorpay_signature;
+
+    if (!isValid) return res.status(400).json({ success: false, error: 'Signature mismatch — payment not verified.' });
+
+    res.json({
+      success: true,
+      message: 'Payment verified successfully.',
+      paymentId: razorpay_payment_id,
+      orderId:   razorpay_order_id,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
